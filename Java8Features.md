@@ -96,3 +96,12 @@
    There are some methods available in Optional class to handle nulls
       
       Optional.isPresent, Optional.ifPresent, Optional.orElse, Optional.map, Optional.ofNullable, Optional.of
+- ### GC improvements: 
+    PermGen space is replaced with Meta space.
+    * permGen is fixed space
+    * meta space grows automatically
+    * avoids out of memory issues
+    * String de duplication where duplicate string will be removed.
+
+- ### Multi Thread improvements:
+   CompletableFuture and a couple of methods are introduced to work with multi thread processes.
