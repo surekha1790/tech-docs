@@ -151,3 +151,13 @@ Use SBETool (uk.co.real_logic.sbe.SbeTool) to generate Java Codecs. Maven plugin
         </plugin>
 
 This maven config generates SBE Encoders/Decoders which will be used to encode/decode fix message
+
+#### **Encoding/Decoding in Java**:
+
+- Uses UnsafeBuffer for encoding/decoding objects. It is implementation of MutableDirectBuffer
+- Encoding: Ex: UnsafeBuffer buffer = new UnsafeBuffer(ByteBuffer.allocateDirect(1024));
+                encoder.wrap(buffer, 0);
+                encoder.securityId()
+- Decoding: Ex: unsafeBuffer.wrap(msg, offset, length)
+                decoder.wrap(unsafeBuffer, 0, decoder.sbeBlockLength(), decoder.sbeSchemaVersion())
+

@@ -5,7 +5,7 @@ This is done automatically in the background.
 
 ## Heap Structure:
 
-Heap are is divided in few areas to maintain newly created and old objects.
+Heap area is divided in few areas to maintain newly created and old objects.
 
 1. #### Young Generation : 
     * ##### Eden Space:
