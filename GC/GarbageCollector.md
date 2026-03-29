@@ -63,4 +63,13 @@ Heap area is divided in few areas to maintain newly created and old objects.
   * Marking state (marked or not). 
   * Remap state (needs updating or not). 
   * Finalizable object tracking. 
-  * Barriers state (active/inactive).
+    * Barriers state (active/inactive).
+ | | | | (WetterWeeather wetter wetteraCold KaltkailtHotHeisbssb(ss)heisseissSpringfurhlingfuurlingFall/AutumHerbsthabst Summer Sommer zomaRainiRegnetaregnatCloudytBewolttktbevolkt)
+
+      xlog:gc*,ergo*=trace,age*=trace,phases*=debug,safepoint:%LOG_DIR%/gc.log:time:filecount=20
+      ✅ Log Tags:
+          gc*	         Logs all GC-related events (like start, end, memory usage, etc.)
+          ergo*	 Logs GC ergonomics (automatic tuning decisions by JVM)
+          age*	 Logs object aging info (e.g., promotion from young to old generation)
+          phases*	 Logs internal GC phases (like marking, compacting, cleanup)
+          safepoint    Logs JVM safepoints (where GC or other VM tasks run safely)

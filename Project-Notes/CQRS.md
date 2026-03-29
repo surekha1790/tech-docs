@@ -38,3 +38,69 @@ ME emits events like
     - It restores state using:
     - Kafka event replay 
     - Periodic order book snapshots (every 3 seconds)
+
+Here **TransactionContext** plays key role. 
+
+#### When one order arrives, multiple things can happen:
+
+   - Order validation
+   - Multiple partial fills
+   - Several trades generated 
+   - Updates to multiple price levels 
+   - Order state transitions 
+   - Multiple outbound events
+
+#### All of that must be:
+
+   - Atomic (all or nothing)
+   - Consistent (no partial side effects)
+   - Ordered (events must reflect reality)
+
+The transaction context provides that guarantee.
+
+### Example Without a Transaction Context (Bad)
+
+#### Imagine this happens:
+
+   - Order matches 3 resting orders
+   - 2 trade events are emitted
+   - ME crashes before:
+     - Final order state event 
+     - Snapshot update
+   - Result:
+     - Kafka has partial events 
+     - State reconstruction becomes inconsistent 
+     - Downstream systems see a broken sequence
+
+❌ This is unacceptable in a trading system.
+
+### What the Transaction Context Does
+1. Groups All Side Effects
+
+   - For a single incoming command, the transaction context tracks:
+     - In-memory state mutations 
+     - Generated domain events 
+     - Outgoing responses (Execution Reports)
+     - Nothing is published externally until the transaction completes successfully.
+
+2. Enables Atomic Event Publication
+
+   - Events are:
+     - Collected in the context 
+     - Validated
+     - Published as a batch or in strict order
+   - If something fails:
+     - Context is discarded 
+     - No events are published 
+     - In-memory state is rolled back (or never committed)
+
+3. Guarantees Event Ordering
+
+   - All events from one command:
+     - Share a transaction boundary 
+     - Are published sequentially 
+     - Preserve causal ordering 
+     - This is critical for:
+       - Kafka consumers (OQS, MDA, SA)
+       - Regulatory replay 
+       - Deterministic recovery

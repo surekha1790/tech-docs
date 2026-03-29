@@ -1,9 +1,11 @@
 ### What is SBE:
 Simple Binary Encoding used heavily in low latency messaging systems like TREP.
-SBE Encoders and Decoders are used to convert data into binary format and publish on to a low latency messaging system then consume and decode the data. It is heavily used in trading platforms and market data feeds for speed and low latency.
+SBE Encoders and Decoders are used to convert data into binary format and publish on to a low latency messaging system 
+then consume and decode the data. It is heavily used in trading platforms and market data feeds for speed and low latency.
 
 ### Why SBE:
-Traditional serialisation format like XML, JSON are slow for low latency applications. Other formats like ProtBuf, Avro may be efficient but still include overhead or complexity that SBE avoids.
+Traditional serialisation format like XML, JSON are slow for low latency applications. 
+Other formats like ProtBuf, Avro may be efficient but still include overhead or complexity that SBE avoids.
 
 ### Benefits of SBE:
 Minimise message size to reduce bandwidth.

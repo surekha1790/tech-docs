@@ -8,16 +8,34 @@
 
 ### How does volatile differ from synchronized?
 – Real use cases for each?
+    - Volatile:
+        - Visibility, not locking
+        - One thread updates and many threads read
+    - Synchronization:
+        - Atomicity and locking, blocking
+        - visibility, mutual exclusion
 
 ### Explain how HashMap works internally.
 – What changed after Java 8?
 – Time complexity in worst cases?
+HashMap operations are O(1) on average, but in the worst case they degrade to O(n), or O(log n)
+in Java 8+ due to treeification of buckets.
 
 ### What are common causes of memory leaks in Java?
 – How do you detect and fix them?
+    - Objects are unused but still showing as referenced might be due to static variables
+    - Caches without eviction
+    - Remove values from thread local variables
+
+We detect them using heap dumps, GC logs, and profilers like MAT or VisualVM, and fix them by removing strong references, adding eviction, and proper resource management.
 
 ### Explain CompletableFuture.
 – How is it better than Future?
+    - Asynchronous computation which may be completed in future and return result
+    - Additional features introduced which are not available in Future
+    - manual Stopping threads, chaining results, performing actions on results, manual completion
+    - Better exceptions handling
+    - Timeout Handling
 
 ### Difference between equals() and hashCode() — and what breaks if they’re wrong?
 
@@ -45,6 +63,9 @@
 
 ### Explain Kafka architecture.
 – Brokers, topics, partitions, replicas, ISR.
+    - Kafka cluster env
+    - cluster contains multiple brokers
+    - each broker contains 
 
 ### How does Kafka guarantee message ordering?
 – When does ordering break?
