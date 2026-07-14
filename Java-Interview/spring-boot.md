@@ -130,4 +130,11 @@ class PaymentService {
 - Correct fix here would be:
    * Do not catch the exception which makes it silently exit the method.
    * If both are independent then do not call another transaction inside a transaction.
-
+ 
+### About SpringBoot's Connection pool (Hikari Pool):
+- Springboot auto creates Hikari connection pool when jpa dependency is added
+- It is required to update max-connections, max-life, connection-time-out based on the prod infra
+- max-connections : should be per service and depends on db infra. Total size should not exceed db max allowed connections size
+- max-life : should be shorter than any upstram that kills ideal connections
+- connection-time : how long it should wait for free connection.
+- lead-detection-threshold: It is off by default and good to set this to catch the connection borrowed but never returned logs
