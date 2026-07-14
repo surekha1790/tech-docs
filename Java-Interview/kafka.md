@@ -21,19 +21,19 @@
     * No duplicates but lost messages
     * Consume message, commit offset and process the message. If consumer could not process it then it is a loss.
     * Config:
-          ```
-          spring:
-              kafka:
-                producer:
-                  acks: "1"                 # or "0" for true fire-and-forget
-                  retries: 0                # no retries -> may drop, never re-send
-                  properties:
-                    enable.idempotence: false   # required: idempotence needs acks=all
-                consumer:
-                  enable-auto-commit: true      # <-- the key line: commit on a timer
-                  auto-commit-interval: 1000    # ms
-                  auto-offset-reset: latest     # skip backlog; loss-tolerant
-          ```
+      ```
+      spring:
+          kafka:
+            producer:
+              acks: "1"                 # or "0" for true fire-and-forget
+              retries: 0                # no retries -> may drop, never re-send
+              properties:
+                enable.idempotence: false   # required: idempotence needs acks=all
+            consumer:
+              enable-auto-commit: true      # <-- the key line: commit on a timer
+              auto-commit-interval: 1000    # ms
+              auto-offset-reset: latest     # skip backlog; loss-tolerant
+      ```
       * It is suitable for metrics, logs, telemetry
  - **Atleast-once:** No loss, Duplicates
      * Message are published 1 or more times
