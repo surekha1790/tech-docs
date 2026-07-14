@@ -6,3 +6,5 @@
 - It is not possible to make db commit and kafka event in the same transaction. So, use transaction outbox.
 - Write event into the outbox table in the same transaction so that db and event will be in the same transaction.
 - Then periodically check this table to read and publish events.
+
+### How do you prevent duplicate orders
