@@ -41,7 +41,8 @@
      * For unsuccessfull process, message will be processed again on kafka restart.
      * Idempotancy should be implemented to avoid processing duplicate message.
      * Services like orders, inventory should use this.
-     * This is kafka's default and most common choice
+     * This is kafka's default and most common choice.
+     * Add DefaultErrorHandler to retry the failed messages.
      * Config:
        ```
        spring:
@@ -85,4 +86,21 @@
           ack-mode: batch          # offsets are committed as part of the transaction
     ```
                   
-   
+### Difference between "latest" & "earliest" 
+- Earliest consumes messages from starting and latest consumes messages published after consumer joined the group.
+- But this config is used only when there is no valid committed offset available to figure what was the last read message.
+- Lets say kafka already published 100 messages. When server starts for the first time, it reads from 0 when config is earliest. When config is latest then it will consume from 100.
+- Now, the consumer processed till 210 and committed offset. If it restarts then it reads from 210 irrespective of the config as committed offset is available.
+
+### How to handle scenarios where messages processing fails or something wrong after processing before comitting 
+- Scenario 1: Message is processed and failed during DB call
+- How to handle: DefaultErrorHandle will pause consumer and retry failed message for n times. If it fails after retries then it moves it to dead letter topic.
+
+- Scenario 2: Message is not in correct format and unable to deserialize it.
+- How to handle: ErrorHandlingDeserializer pushes the message to dead letter topic
+
+- Scenario 3: Consumer crash/rebalance before offset commit
+- How to handle: After restart it automatically redeliver the message. Idempotency should be maintained.
+
+- Scenario 4: Slow consumer where consumere does not consume message within max.poll.interval.ms time, so broker declares it as dead and rebalance it. So message will be republished
+- How to handle: Idempotency implementation avoid duplicate updates. Config can be adjusted by increasing max poll time and decreasing max poll records.
