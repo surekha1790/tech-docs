@@ -104,3 +104,39 @@
 
 - Scenario 4: Slow consumer where consumere does not consume message within max.poll.interval.ms time, so broker declares it as dead and rebalance it. So message will be republished
 - How to handle: Idempotency implementation avoid duplicate updates. Config can be adjusted by increasing max poll time and decreasing max poll records.
+
+### How does Kafka decide which partition a record goes to?
+- Each topic splits into multiple partitions and record goes to exactly one record. Partition will be selected by producer.
+- **Key present** → `partition = hash(key) % numPartitions`
+- **Withot Key** → Kafka follows **Sticky partition**. Earlier it used to follow round robin way to push message in partitons when no key present but it cause low throughtput and less messages in each partition.
+                   So, in sticky partition, one partition will be picked up and messages will be pushed into it until batch is full. Producer maintains a buffer for each partition, so when it is full then it switches to                      another partition.
+- **Custom** → implement `Partitioner` for domain-specific routing (e.g. route by region).
+
+### Why does partitioning matter, and how do you choose a key?
+- Partition is to maintain parallelism and ordering.
+- For example, same order id events goes to same partition so that they follow the order.
+
+### How many partitions should a topic have?
+- There is no particular number for it.
+- Should be decided based on number of consumers in consumer group to achieve parallelism.
+- More consumers than partitions make the consumer idle
+- More partitions than consumer does not achieve great parallelism as multiple partitions are assigned to one consumer.
+- **Rule of thumb:** `partitions = max(target_throughput / per_partition_throughput, desired_consumer_parallelism)`
+
+### Can you change the partition count later? What breaks?
+- It is possible to increase partition count later but it breaks few things.
+- Old messages stays in the old partitions and new messages are distributed based on new partitions count
+- So, there is possibility of missing order for the messages such as e-commerce sequence like order created, payment success, order confirmed, shipped, delivered etc.
+- For such scenarios it causes issues as order will be disturbed due to new partitions and there is a possibility that order confirmed is process first than payment success.
+- To avoid these, there are couple of ways
+- **Create over partitions** : Create more partitions than requirement so there will be room to avoid scaling in future
+- **New Partition** : Create new v2 version topic and publish new messages to new topic and consume from both topics, so old messages are ordered and consumed until it is finished.
+- **Versioning** : Here we not only create a new topic with more partitions, we store versioned topic name in db along with the event(lets say order). So while publishing, will fetch the topic version and publish on to                       the same topic always, so we do not mess with the ordering even increase partitions
+
+### How Kafka commits the offset ?
+- When auto commit is on then kafka commit the offset in specific time intervals set by kafka irrespective of the message processing result.
+- When auto commit is off then kafka listner takes care of the commit and it commits the offset after successfull processing of a batch before polling. If unsuccessfull process defaulterror handler will retry.
+- It can be controlled more with config `spring.kafka.listener.ack-mode:`.
+- **RECORD:** commit offset per record instead of batch.
+- **MANUAL/MANUAL_IMMEDIATE:** Need to inject Acknowledgment in the listner and call ack.ack() manually to commit offset.
+  
