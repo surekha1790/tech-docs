@@ -63,7 +63,7 @@
                 spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
             listener:
               ack-mode: record          # commit after EACH record (BATCH is the default; RECORD avoids re-doing a whole batch)
-              concurrency: 3
+              concurrency: 3            **# concurrency means it creates 3 consumers to consume messages. If there are two such instances running then there will be 6 consumers**
        ```
 - **Exactly-once:** No loss, no dup
     * Adds the idempotent producer + transactions + committed-read isolation.
