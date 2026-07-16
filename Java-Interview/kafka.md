@@ -190,8 +190,8 @@
 - When consumers added or removed from consumer group then kafka rebalance partitons to assigne new consumer group.
 - Ex: P0...P6, consumers C0..C1 (3 partition each) and now C3 joins so rebalance partitions to assign to new consumer (2 partitions each)
 - There are a fews ways how kafka rebalnce it
-- Classic/Eager: Stop all consumers, revoke partitions and rebalance to all consumers
-- Cooperative: Neither stop consumers nor revoke all partitions. It just revoke only partitions which required to be balanced.
+- **Classic/Eager:** Stop all consumers, revoke partitions and rebalance to all consumers
+- **Cooperative:** Neither stop consumers nor revoke all partitions. It just revoke only partitions which required to be balanced.
   
   ```
   spring:
@@ -201,7 +201,7 @@
         partition.assignment.strategy: >
           org.apache.kafka.clients.consumer.CooperativeStickyAssignor
   ```
-- Static membership : Usually kafka provides consumer id as consumer-1343, so when it restarts then id changes and kafka assumes it is new consumer and perform rebalance.
+- **Static membership:** Usually kafka provides consumer id as consumer-1343, so when it restarts then id changes and kafka assumes it is new consumer and perform rebalance.
                       To avoid this, provide consumer group name using config `group.instance.id`, so it keeps the partitions to the consumer until session.timeout.ms
   ```
   spring:
@@ -210,4 +210,59 @@
       properties:
         group.instance.id: inventory-service-1
   ```
+  ### * What are the partition assignment strategies?
+  - **Range:** Partitions are sorted and distributed to consumers. Ex: P0..P6 , C0..C2. Each consumer get two partitions. It can be imbalance when multiple topics has different number of partitions.
+
+    ```
+    C1:
+     orders P0-P3
+     payments P0
+    
+    C2:
+     orders P4-P6
+     payments P1
+    
+    C3:
+     orders P7-P9
+     payments P2
+ ```
+ - **Round Robin:** Assignes each partition to each consumer in round robin way. Better balance but during rebalance many partitions will be moved.
+ - **Sticky Assigner:** Keep balanced assignment and move only required partitions but stop the world problem.
+ - **CooperativeStickyAssignment:** Sticky Assignment + incremental rabalance, balanced and move required only without stop the world.
+
+### * How do you scale producer throughput?
+- publish batch wise instead of writing each message. linger.ms is to wait before publishing another batch.
+
+```
+spring:
+  kafka:
+    producer:
+      batch-size: 65536
+      properties:
+        linger.ms: 10
+```
+- compression.type to reduce size of the message
+
+```
+spring:
+  kafka:
+    producer:
+      compression-type: snappy
+```
+- Increase producer buffer size, producer maintain buffer to store batch so increase buffer makes to store more messages in batch.
+
+```
+spring:
+  kafka:
+    producer:
+      buffer-memory: 67108864
+```
+- Increase producer parallelsim, concurrently publish messages and kafkatemple is threadsafe.
+
+### * If you increase producer throughput, how do you prevent overwhelming consumers ?
+- There are chances that producer is producing many messages and consumers are unable to process them.
+- Monitor the situation first then take action accordingly.
+- If there are less consumers than partitions then increase partitions, so that concurrency will be increased
+- async/parallel processing
+- May need to tweak the business logic where it is taking time like DB calls
   
