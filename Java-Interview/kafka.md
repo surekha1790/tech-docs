@@ -95,6 +95,13 @@
 ### * How to handle scenarios where messages processing fails or something wrong after processing before comitting 
 - Scenario 1: Message is processed and failed during DB call
 - How to handle: DefaultErrorHandle will pause consumer and retry failed message for n times. If it fails after retries then it moves it to dead letter topic.
+                 - auto commit is false: 
+                     * If there is not default error handler then offset can not be commited, listner polls again and again for the same record infinitly (Partition Starvation).
+                     * If the error is handled with try/catch block then it will swallow the error and commit the offset
+                     * If we want to avoid retry and catch the exception then move the failed messages to DLT to investigate and process later.
+                 - auto commit is true:
+                     * Kafka commit the offset for interval time irrespective of the process status (failure/success) and data will be loss
+                 It is recommended way to keep the auto commit offset to false and handle the ack by record/manually. Kafka by default acks batch wise.
 
 - Scenario 2: Message is not in correct format and unable to deserialize it.
 - How to handle: ErrorHandlingDeserializer pushes the message to dead letter topic
@@ -129,9 +136,9 @@
 - So, there is possibility of missing order for the messages such as e-commerce sequence like order created, payment success, order confirmed, shipped, delivered etc.
 - For such scenarios it causes issues as order will be disturbed due to new partitions and there is a possibility that order confirmed is process first than payment success.
 - To avoid these, there are couple of ways
-- **Create over partitions** : Create more partitions than requirement so there will be room to avoid scaling in future
+- **Create over partitions** : Create more partitions than requirement so there will be room to avoid scaling in future.
 - **New Partition** : Create new v2 version topic and publish new messages to new topic and consume from both topics, so old messages are ordered and consumed until it is finished.
-- **Versioning** : Here we not only create a new topic with more partitions, we store versioned topic name in db along with the event(lets say order). So while publishing, will fetch the topic version and publish on to                       the same topic always, so we do not mess with the ordering even increase partitions
+- **Versioning** : Here we not only create a new topic with more partitions, we store versioned topic name in db along with the event(lets say order). So while publishing, will fetch the topic version and publish on to                       the same topic always, so we do not mess with the ordering even increase partitions.
 
 ### * How Kafka commits the offset ?
 - When auto commit is on then kafka commit the offset in specific time intervals set by kafka irrespective of the message processing result.
@@ -141,32 +148,66 @@
 - **MANUAL/MANUAL_IMMEDIATE:** Need to inject Acknowledgment in the listner and call ack.ack() manually to commit offset.
 
 ### * How does Kafka achieve durability and fault tolerance
-- Kafka maintains append only log on disk for each partition where it sequenctially append messages at the end
-- Kafka also has replicas. One broker will be leader and remaining are followers where insyc replicas will be also be selected
-- replicas store all messaged which are flowing through leader and in sync replica is the one which is elgible to be leader when leader crashes
-- Producers can use acks=all to ensure messages are acknowledged only after replication to in-sync replicas
+- Kafka maintains append only log on disk for each partition where it sequenctially append messages at the end.
+- Kafka also has replicas. One broker will be leader and remaining are followers where insyc replicas will be also be selected.
+- replicas store all messaged which are flowing through leader and in sync replica is the one which is elgible to be leader when leader crashes.
+- Producers can use acks=all to ensure messages are acknowledged only after replication to in-sync replicas.
 - kafka also has retention policy, based on which messages will be stored.
 
 ### * What is the ISR, and how does it relate to `acks`?
-- ISR (insync replica) which is same as leader which stores all messages flowing through leader
-- To be eligible for becoming leader, it should be ISR
+- ISR (insync replica) which is same as leader which stores all messages flowing through leader.
+- To be eligible for becoming leader, it should be ISR.
 - acks config is to keep the brokers in sync.
-- ack = 0: fire and forget, do not wait for ack
-- ack = 1 : acks to only leader
-- ack = all : leader waits until all replicas are in sync before ack
+- ack = 0: fire and forget, do not wait for ack.
+- ack = 1 : acks to only leader.
+- ack = all : leader waits until all replicas are in sync before ack.
 
 ### * Why the classic "RF=3, min.insync.replicas=2, acks=all"?
 - min.insync.replicas=2 means there should be atleast replicas should be in sync with leader when acks=all.
-- Anyone replica does not acknowledge the write then it is considered as failure
-- If one broker is down for the partition then we still have data in another replica
-- If both brokers are down then partition does not accept the data and throws NotEnoughReplicas
+- Anyone replica does not acknowledge the write then it is considered as failure.
+- If one broker is down for the partition then we still have data in another replica.
+- If both brokers are down then partition does not accept the data and throws NotEnoughReplicas.
 
 ### * What happens when a broker fails?
-- When broker fails, Controller in Kraft mode will elect another leader from in sync replicas
-- When broker returns it joins as follower, catches up and re enter ISR
+- When broker fails, Controller in Kraft mode will elect another leader from in sync replicas.
+- When broker returns it joins as follower, catches up and re enter ISR.
 
 ### * What is unclean leader election
-- When all ISRs are lost and broker will be elected based on config unclean.leader.election.enable
-- **True:**  even ISR is not available, kafka choose out of sync broker to maintain availability
-- **False:** It waits until ISR is available. No data loss but no availability.  
+- When all ISRs are lost and broker will be elected based on config unclean.leader.election.enable.
+- **True:**  even ISR is not available, kafka choose out of sync broker to maintain availability.
+- **False:** It waits until ISR is available. No data loss but no availability.
+
+### * What if a partition is piled up due to a bad key
+- It is called as  hot partition/skewed key.
+- Should use better and approriate key to avoid this situation.
+- Increasing consumers does not help because one partition is assigned to one consumer only.
+- Increasing partitions also does not help because problem is with key and always goes to same partition.
+- Implement parallalism to process quickly.
+- append shard to key but does not guanrantee the order.
+- Chosing right key is the better choice.
+
+### * What is a rebalance, what triggers it, and why is it painful?
+- When consumers added or removed from consumer group then kafka rebalance partitons to assigne new consumer group.
+- Ex: P0...P6, consumers C0..C1 (3 partition each) and now C3 joins so rebalance partitions to assign to new consumer (2 partitions each)
+- There are a fews ways how kafka rebalnce it
+- Classic/Eager: Stop all consumers, revoke partitions and rebalance to all consumers
+- Cooperative: Neither stop consumers nor revoke all partitions. It just revoke only partitions which required to be balanced.
+  
+  ```
+  spring:
+  kafka:
+    consumer:
+      properties:
+        partition.assignment.strategy: >
+          org.apache.kafka.clients.consumer.CooperativeStickyAssignor
+  ```
+- Static membership : Usually kafka provides consumer id as consumer-1343, so when it restarts then id changes and kafka assumes it is new consumer and perform rebalance.
+                      To avoid this, provide consumer group name using config `group.instance.id`, so it keeps the partitions to the consumer until session.timeout.ms
+  ```
+  spring:
+  kafka:
+    consumer:
+      properties:
+        group.instance.id: inventory-service-1
+  ```
   
