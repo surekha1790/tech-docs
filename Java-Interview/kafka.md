@@ -212,7 +212,6 @@
   ```
   ### * What are the partition assignment strategies?
   - **Range:** Partitions are sorted and distributed to consumers. Ex: P0..P6 , C0..C2. Each consumer get two partitions. It can be imbalance when multiple topics has different number of partitions.
-
     ```
     C1:
      orders P0-P3
@@ -225,15 +224,13 @@
     C3:
      orders P7-P9
      payments P2
- ```
-
+    ```
  - **Round Robin:** Assignes each partition to each consumer in round robin way. Better balance but during rebalance many partitions will be moved.
  - **Sticky Assigner:** Keep balanced assignment and move only required partitions but stop the world problem.
  - **CooperativeStickyAssignment:** Sticky Assignment + incremental rabalance, balanced and move required only without stop the world.
 
 ### * How do you scale producer throughput?
 - publish batch wise instead of writing each message. linger.ms is to wait before publishing another batch.
-
 ```
 spring:
   kafka:
@@ -242,26 +239,21 @@ spring:
       properties:
         linger.ms: 10
 ```
-
 - compression.type to reduce size of the message
-
 ```
 spring:
   kafka:
     producer:
       compression-type: snappy
 ```
-
 - Increase producer buffer size, producer maintain buffer to store batch so increase buffer makes to store more messages in batch.
-
 ```
 spring:
   kafka:
     producer:
       buffer-memory: 67108864
 ```
-
-- Increase producer parallelsim, concurrently publish messages and kafkatemple is threadsafe.
+- Increase producer parallelsim, concurrently publish messages and kafkatemple is threadsafe
 
 ### * If you increase producer throughput, how do you prevent overwhelming consumers ?
 - There are chances that producer is producing many messages and consumers are unable to process them.
