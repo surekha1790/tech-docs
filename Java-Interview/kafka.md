@@ -139,4 +139,34 @@
 - It can be controlled more with config `spring.kafka.listener.ack-mode:`.
 - **RECORD:** commit offset per record instead of batch.
 - **MANUAL/MANUAL_IMMEDIATE:** Need to inject Acknowledgment in the listner and call ack.ack() manually to commit offset.
+
+### How does Kafka achieve durability and fault tolerance
+- Kafka maintains append only log on disk for each partition where it sequenctially append messages at the end
+- Kafka also has replicas. One broker will be leader and remaining are followers where insyc replicas will be also be selected
+- replicas store all messaged which are flowing through leader and in sync replica is the one which is elgible to be leader when leader crashes
+- Producers can use acks=all to ensure messages are acknowledged only after replication to in-sync replicas
+- kafka also has retention policy, based on which messages will be stored.
+
+### What is the ISR, and how does it relate to `acks`?
+- ISR (insync replica) which is same as leader which stores all messages flowing through leader
+- To be eligible for becoming leader, it should be ISR
+- acks config is to keep the brokers in sync.
+- ack = 0: fire and forget, do not wait for ack
+- ack = 1 : acks to only leader
+- ack = all : leader waits until all replicas are in sync before ack
+
+### Why the classic "RF=3, min.insync.replicas=2, acks=all"?
+- min.insync.replicas=2 means there should be atleast replicas should be in sync with leader when acks=all.
+- Anyone replica does not acknowledge the write then it is considered as failure
+- If one broker is down for the partition then we still have data in another replica
+- If both brokers are down then partition does not accept the data and throws NotEnoughReplicas
+
+### What happens when a broker fails?
+- When broker fails, Controller in Kraft mode will elect another leader from in sync replicas
+- When broker returns it joins as follower, catches up and re enter ISR
+
+### What is unclean leader election
+- When all ISRs are lost and broker will be elected based on config unclean.leader.election.enable
+- **True:**  even ISR is not available, kafka choose out of sync broker to maintain availability
+- **False:** It waits until ISR is available. No data loss but no availability.  
   
