@@ -226,6 +226,7 @@
      orders P7-P9
      payments P2
  ```
+
  - **Round Robin:** Assignes each partition to each consumer in round robin way. Better balance but during rebalance many partitions will be moved.
  - **Sticky Assigner:** Keep balanced assignment and move only required partitions but stop the world problem.
  - **CooperativeStickyAssignment:** Sticky Assignment + incremental rabalance, balanced and move required only without stop the world.
@@ -241,6 +242,7 @@ spring:
       properties:
         linger.ms: 10
 ```
+
 - compression.type to reduce size of the message
 
 ```
@@ -249,6 +251,7 @@ spring:
     producer:
       compression-type: snappy
 ```
+
 - Increase producer buffer size, producer maintain buffer to store batch so increase buffer makes to store more messages in batch.
 
 ```
@@ -257,12 +260,24 @@ spring:
     producer:
       buffer-memory: 67108864
 ```
+
 - Increase producer parallelsim, concurrently publish messages and kafkatemple is threadsafe.
 
 ### * If you increase producer throughput, how do you prevent overwhelming consumers ?
 - There are chances that producer is producing many messages and consumers are unable to process them.
 - Monitor the situation first then take action accordingly.
 - If there are less consumers than partitions then increase partitions, so that concurrency will be increased
+- Back pressure the producer
+    * provide batch size so that once it is full producer will wait naturally.
+    * Use ratelimiter
+    * Use internal queue
+    * max.block.ms - wait for next buffer availability
 - async/parallel processing
 - May need to tweak the business logic where it is taking time like DB calls
+
+### * How does Kafka scale storage and retention?
+- Each partition is stored as appended log and divided into segments.
+- Old segments will be deleted based on retention period or compact them.
+
+
   
