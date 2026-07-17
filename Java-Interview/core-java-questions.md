@@ -49,6 +49,11 @@ So, to avoid this hashmap uses red black AVL tree and it applies left/right rota
 - No locking while reading
 - Insertion into empty bucket never locks, it acquires lock only when there is a collision.
 - It does not allow null because `get()` returns null, so it means no element rather than creating ambiguity.
+
+### What is memory leak 
+- When any object is unused but still reachable in heap area which can not be collected by GC.
+- Analyze heap dump and identity the memory leak.
+- GC Root is always alive, ex: static variables, thread stacks
                     
 
 
