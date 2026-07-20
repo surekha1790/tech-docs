@@ -62,10 +62,64 @@ It is stored client side
 - Set authenticated user for current request.
   ```
   Authentication auth =
-SecurityContextHolder
-.getContext()
-.getAuthentication();
-```
+  SecurityContextHolder
+  .getContext()
+  .getAuthentication();
+  ```
+
+### * Why do we configure SessionCreationPolicy.STATELESS?
+- Since JWT is stateless, we do not need session.
+- If it does not set then spring creates HttpSession
+
+### * What are claims?
+- Claims are pieces of information which are included in JWT payload
+
+### * What are registered claims?
+  ```
+    sub
+    iss
+    aud
+    exp
+    iat
+    nbf
+    jti
+  ```
+### * What is an Access Token?
+- Access token is to authorise the user and it is short lived.
+- Once issues can not be revoked and we need to wait until it is expired.
+- Security issues if it is stolen and need to wait untill expired.
+
+### What is Refresh Token?
+- Refresh token is long lived token.
+- It is stored in DB.
+- Once access token in expired, refresh token will be issues in the backend to validate in future requests.
+- Since it is short lived, it is easy to revoke and reissue new token.
+- Purpose of this token is, to keep user logged in and make it secured with new token.
+
+### What algorithms are used to sign JWT?
+- Common algorithms:
+  ``` HS256 (HMAC using a shared secret)
+      RS256 (RSA public/private key)
+      ES256 (Elliptic Curve)
+  ```
+### * A request reaches your API Gateway. What happens?
+- Read the Authorization header.
+- Extract the Bearer token.
+- Validate the signature.
+- Check expiration and other claims.
+- Create an Authentication object.
+- Store it in SecurityContextHolder.
+- Forward the request to the appropriate microservice.
+- Return 401 Unauthorized if validation fails.
+
+### * What HTTP status codes are typically returned?
+- 401 : Unauthorized - Token is not valid/missing/expired.
+- 403 : Forbidden - Token is valid but required permissions.
+- 200 : Success.
+
+  
+
+
 
 
 
