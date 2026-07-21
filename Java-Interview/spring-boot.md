@@ -117,6 +117,7 @@ class PaymentService {
 - Outer method calls commit but nested method set rollback only, so it rolls back everything and throws UnexpectedRollbackException.
 
 - mark nested method as REQUIRES_NEW, which makes it independent and rollsback on exception
+  
       ```
       @Service
       class PaymentService {
@@ -126,6 +127,7 @@ class PaymentService {
           }
       }
       ```
+  
       * Above solution uses two connections from pool, so it may exhaust the connection pool. So, should used cautiously.
 - Correct fix here would be:
    * Do not catch the exception which makes it silently exit the method.
