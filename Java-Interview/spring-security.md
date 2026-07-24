@@ -154,7 +154,7 @@ AuthenticationProvider authenticationProvider() {
     return provider;
 }
 ```
-- JwtAuthFilter should run before UsernamePasswordAuthenticationFilter as jwtFilter extract details and set securityContextHolder in auth service.
+- JwtAuthFilter which just extract the user details from the request which was already authenticated by gateway and create SecurityContextHolder. This is required to run preAuthorize checks on few end points where it check the role. (It can be renamed to better naming convension to reflect the functionality).
 ---
 
 ## 7. Testing, hardening, war stories
