@@ -41,6 +41,15 @@
 - Spring2.6 does not allow this circular dependency, even with setter/field injection it throws exception.
 - Circular dependency can be resolved by making one of the objects lazy.
 
+### Explain Bean lifecycle ?
+- Initialization: In this stage, it is just initialize the bean with constructor or with @Bean annotation. Here object is present but bean is not fully wired.
+- Populate Properties: Spring inject dependencies and properties values (${}).
+- BeanPostProcessor: Run bean processor before initializer
+- Init: Run @PostConstructor
+- BeanPostProcessor - AfterInitializers: Creates Proxies (@Transactional, @PreAuthorise, @Async)
+- Now, bean is fully ready and injected in context.
+- Destruction: @PreDestroy will be executed
+
 ### Spring Transaction Management
 ```
 @Transactional
@@ -132,7 +141,28 @@ class PaymentService {
 - Correct fix here would be:
    * Do not catch the exception which makes it silently exit the method.
    * If both are independent then do not call another transaction inside a transaction.
- 
+
+### Transaction Propagations ?
+- Required: Default option and all the inner calls bounded to the same transaction. Either everything is committed or rolledback.
+- Required_New: Inner method call creates a new individual transaction and irrespective of the outer transaction it can commit or rollback. Caveat is it uses multiple connections from pool.
+- Nested: Supports only with JDBC not with JPA.
+- Supports: If the call is from trasanction then support otherwise just act as normal
+- Not_Supported: Suspend the transaction and run normally.
+- Mandatory: It must be in the transaction.
+- Never: It must not be in transaction.
+
+### @Transactional pitfalls ?
+- Since transactional class are wrapped with proxy, self method invocation does not apply transaction
+- Only public methods work under transaction. Private, static, final, protected methods are ignored silently.
+- Only unchecked exceptions and errors are rolled back but checked exceptions commits the transaction. To handle this add ```@Transactional(requiredFor=Exception.class)```.
+- Calling another transactional method inside a transaction uses same transaction and it adds rollback required when there is an exception and outer transaction can not commit.
+- To avoid above case, use REQUIRED_NEW propagation type but it uses separate connection from pool which can cause issues at connection pool side.
+- If transactional method swallos the exception then it will commit the transaction.
+- Transactional method holds connection for entire call, so should concious on method scope.
+- It does not propagate to the another thread in case of @Async call
+- If kafka publish is there within transaction and kafka published but db rolled back then kafka still have the published event.
+
+
 ### About SpringBoot's Connection pool (Hikari Pool):
 - Springboot auto creates Hikari connection pool when jpa dependency is added
 - It is required to update max-connections, max-life, connection-time-out based on the prod infra
