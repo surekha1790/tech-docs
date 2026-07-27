@@ -143,13 +143,13 @@ class PaymentService {
    * If both are independent then do not call another transaction inside a transaction.
 
 ### Transaction Propagations ?
-- Required: Default option and all the inner calls bounded to the same transaction. Either everything is committed or rolledback.
-- Required_New: Inner method call creates a new individual transaction and irrespective of the outer transaction it can commit or rollback. Caveat is it uses multiple connections from pool.
-- Nested: Supports only with JDBC not with JPA.
-- Supports: If the call is from trasanction then support otherwise just act as normal
-- Not_Supported: Suspend the transaction and run normally.
-- Mandatory: It must be in the transaction.
-- Never: It must not be in transaction.
+- **REQUIRED**: Default option and all the inner calls bounded to the same transaction. Either everything is committed or rolledback.
+- **REQUIRED_NEW**: Inner method call creates a new individual transaction and irrespective of the outer transaction it can commit or rollback. Caveat is it uses multiple connections from pool.
+- **NESTED**: Supports only with JDBC not with JPA.
+- **SUPPORTS**: If the call is from trasanction then support otherwise just act as normal
+- **NOT_SUPPORTED**: Suspend the transaction and run normally.
+- **MANDATORY**: It must be in the transaction.
+- **NEVER**: It must not be in transaction.
 
 ### @Transactional pitfalls ?
 - Since transactional class are wrapped with proxy, self method invocation does not apply transaction
