@@ -163,10 +163,19 @@ class PaymentService {
 - If kafka publish is there within transaction and kafka published but db rolled back then kafka still have the published event.
 
 
-### About SpringBoot's Connection pool (Hikari Pool):
+### About SpringBoot's Connection pool (Hikari Pool) ?
 - Springboot auto creates Hikari connection pool when jpa dependency is added
 - It is required to update max-connections, max-life, connection-time-out based on the prod infra
 - max-connections : should be per service and depends on db infra. Total size should not exceed db max allowed connections size
 - max-life : should be shorter than any upstram that kills ideal connections
 - connection-time : how long it should wait for free connection.
 - lead-detection-threshold: It is off by default and good to set this to catch the connection borrowed but never returned logs
+
+### REST api versioning ?
+- Versioning is required when there is a major change in the api which breaks the existing flow and backward compatibility is required.
+- In such cases, keep the old api as it is and create a new api with updated functionality.
+- There are couple of ways to maintain versioning.
+- URI Path:  api/v1/orders (Easy and Recommended)
+- Query Param: api/orders?version=1 (Path is little cluttered)
+- Custom Header: X-API-Version: 1  (Clean Url but hard to test in browser)
+- Media Type: Accept: application/vnd.company.v1+json (Complex and hard to test)
