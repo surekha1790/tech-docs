@@ -137,7 +137,7 @@
 - For such scenarios it causes issues as order will be disturbed due to new partitions and there is a possibility that order confirmed is process first than payment success.
 - To avoid these, there are couple of ways
 - **Create over partitions** : Create more partitions than requirement so there will be room to avoid scaling in future.
-- **New Partition** : Create new v2 version topic and publish new messages to new topic and consume from both topics, so old messages are ordered and consumed until it is finished.
+- **New Topic** : Create new v2 version topic and publish new messages to new topic and consume from both topics, so old messages are ordered and consumed until it is finished.
 - **Versioning** : Here we not only create a new topic with more partitions, we store versioned topic name in db along with the event(lets say order). So while publishing, will fetch the topic version and publish on to                       the same topic always, so we do not mess with the ordering even increase partitions.
 
 ### * How Kafka commits the offset ?
