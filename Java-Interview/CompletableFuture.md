@@ -477,6 +477,4 @@ ProductView view = CompletableFuture.allOf(price, inventory, reviews)
 
 *Every `then*`, `applyToEither`, `acceptEither`, `runAfter*`, and `handle`/`whenComplete` method also has `...Async` variants that run the callback on another thread (optionally a supplied executor).*
 
----
 
-*All examples verified on OpenJDK 21. `CF<T>` is shorthand for `CompletableFuture<T>`. `sleep(ms)` is a helper wrapping `Thread.sleep`.*
