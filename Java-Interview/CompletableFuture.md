@@ -1,6 +1,5 @@
 # CompletableFuture — A Complete Beginner's Guide
 
-A practical, from-scratch guide to `java.util.concurrent.CompletableFuture` (Java 8+), covering **every method** grouped by purpose, with plain-English explanations, runnable examples, use cases, and pitfalls. All code samples in this guide were compiled and run on **OpenJDK 21** — the outputs shown are the real program outputs.
 ---
 
 ## 1. What problem does it solve?
