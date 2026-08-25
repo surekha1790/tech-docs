@@ -1,4 +1,4 @@
-# Multi-Thread Interview Questions
+# DB Locking Interview Questions
 
 1. #### What is Optimistic and Pessimistic Locking ?
     **Optimistic Lock:** Concurrency management mechanism where multiple transactions
