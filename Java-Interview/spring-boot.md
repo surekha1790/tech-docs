@@ -153,6 +153,25 @@ class PaymentService {
 
 ### @Transactional pitfalls ?
 - Since transactional class are wrapped with proxy, self method invocation does not apply transaction
+  ```
+      @Service
+      public class OrderService {
+  
+        public void processOrder() {
+          validateOrder();
+  
+          saveOrder();
+  
+          sendNotification();
+        }
+  
+        @Transactional
+        public void saveOrder() {
+            orderRepository.save(...);
+        }
+    }
+  ```
+  Here calling ```saveOrder()``` does not go through the proxy and create transaction because it invocation is from normal method which bypasses the transaction
 - Only public methods work under transaction. Private, static, final, protected methods are ignored silently.
 - Only unchecked exceptions and errors are rolled back but checked exceptions commits the transaction. To handle this add ```@Transactional(requiredFor=Exception.class)```.
 - Calling another transactional method inside a transaction uses same transaction and it adds rollback required when there is an exception and outer transaction can not commit.
