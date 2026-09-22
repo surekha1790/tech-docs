@@ -17,7 +17,7 @@ Generally, GC is performed when heap is full, if memory is not claimed back even
 - **Hash Collison:**
    * There is a possibility that different keys may have same hashcode and goes to the same bucket, this is where hash collision occurs.
    * In such cases multiple keys will be stored in the same bucket in linked list structure.
-   * From Java8, red black tree is being used in place of linked list but not from intial collision.
+   * From Java8, red black tree is being used in place of linked list but not from initial collision.
    * When there is a collision, it check if the **linked list size is > 8 and total array length is < 64** then it prefer to double the array size instead of treefying as it is cheap operation.
    * When array **length is >= 64** then it will convert the particular bucket into red black tree. Treefying is not per hashmap instead it is per bucket.
  
@@ -25,18 +25,26 @@ Generally, GC is performed when heap is full, if memory is not claimed back even
      * When table size grows than the threshold then it increases the table size to 32 (double).
      * Every entry should be redistributed according to the new size.
      * Jav8 does this in smart way to avoid calculating hash for all elements.
-     * It calculates **hash & oldcapacity (16)**, if it is 0 then it stays in the same index otherwise moves to **index + oldcapacity (16)**
+     * It calculates **hash & oldcapacity (16)**, if it is 0 then it stays in the same index otherwise moves to **index + old capacity (16)**
  - Hash is not calculated everytime. Each node caches the hash during insertion and same will be used by JVM during resizing.  
 
+
 ### What is Red Black tree in Hashmap
-It is self balanced binary serach tree. If it is a plain binary search tree and inserting sorted order elements then tree grows in one directon and complexity becomes O(n) which is worst case for hashmap.
-So, to avoid this hashmap uses red black AVL tree and it applies left/right rotations to balance the tree. Root element is black and no two red should be in same line.
+It is self balanced binary search tree. If it is a plain binary search tree and inserting sorted order elements then tree grows in one direction and complexity becomes O(n) which is worst case for hashmap.
+So, to avoid this hashmap uses red black AVL tree, and it applies left/right rotations to balance the tree. Root element is black and no two red should be in same line.
     10        10                20           20                   20 
       \         \               / \          / \                  / \ 
        20        20   ==>      10  30       10  30    ==>        10  40
                    \                              \                  / \  
                     30                             40                30 50
-
+### Explain TreeHashSet internal implementation
+- It uses self balanced red black tree.
+- root is always black.
+- small elements left side and bigger elements in right side.
+- no two red nodes should be in a row.
+- rebalances the tree to keep complexity O(logn)
+- null nodes should be black
+- It uses comparator to compare elements
 ### Difference between Hashmap, synchronized hashmap and Concurrent hashmap
 - All stores key value pair
 - Hashmap an Synchronized hash map allows one null key and null value but concurrent hashmap does not allow
@@ -54,6 +62,11 @@ So, to avoid this hashmap uses red black AVL tree and it applies left/right rota
 - When any object is unused but still reachable in heap area which can not be collected by GC.
 - Analyze heap dump and identity the memory leak.
 - GC Root is always alive, ex: static variables, thread stacks
+
+### IoC vs DI
+- Inversion of control is a principal. Framework control the object injection.
+- When you inject object with new keyword then it is tightly coupled.
+- Dependency injection is a technique spring uses IoC to inject dependencies.
                     
 
 
