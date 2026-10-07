@@ -134,3 +134,13 @@ We also compare against the OQS database, so the stored record matches the engin
 Kafka is the source of truth and the tie-breaker. If the database is behind, we replay the missing events into OQS, which is safe because it's idempotent by sequence number. If the engine's own state is wrong, which is rare and serious, we alert, halt the instrument and rebuild that book from Kafka.
 
 It runs continuously during the day, after every recovery or failover, and at end of day across the engine, database and clearing."
+
+## How ME tier partition works
+Instruments are sharded by the last character of the Security ID, which maps to a tier. OEGW routes orders by Security ID, and each tier owns only its books. Every tier is its own small cluster with one leader that matches and emits, plus sync servers that keep identical books from the same ordered inputs. RCMS detects leader failure by missed heartbeats and elects the most up-to-date sync server by majority, using term numbers to prevent two leaders. Because matching is deterministic, failover has no divergence and no duplicate trades, and a failure is contained to one tier."
+
+Leader dies → heartbeats stop → RCMS marks it dead
+→ RCMS elects the most up-to-date sync server (majority vote, new term)
+→ new leader catches up the last events → starts matching
+→ OEGW is told the new leader → orders flow again
+
+RCMS is the cluster manager for each ME tier. It tracks which nodes are alive using heartbeats, elects one leader per tier, preferring the most up-to-date standby with majority agreement, and tells every node and the gateways who the leader is. Term numbers and stepping down without a majority prevent two leaders. Because matching is deterministic, the new leader's book is identical, so failover has no lost or duplicate trades.
