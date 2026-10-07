@@ -84,3 +84,22 @@ If the buy had been **500 @ 10.13** instead: it fills 400 at 10.12, then the 100
 - **Quote**: both sides, one per MM per instrument, and every new quote **replaces** the old one.
 
 Both are matched in the same order book with the same price-time rules.
+
+## Why is the Kafka offset saved with the snapshot, and how?
+
+"The snapshot is a copy of the order book, and the offset tells us exactly which events are already inside it. The offset is the position in the ME's outgoing event topic (placed, filled, cancelled), stored per partition.
+
+Each snapshot file header stores the partition, the last Kafka offset, and the engine's own sequence number. We write it to a temp file, fsync, then rename, so a half-written snapshot is never loaded.
+
+On restart we load the latest snapshot, seek Kafka to that offset, and apply only events with a higher sequence number. That gives no duplicates, no gaps, and a fast restart, because we replay at most about 3 seconds of events instead of the whole day."
+
+## How LLM can achieve low latency ?
+LLM is broker less messaging system. It does not have intermediate brokers like Kafka and it directly publish the message to the receiver.
+
+## How to handle failures in LLM
+The industry standard is three levels. First, A/B redundant feeds, so most losses are covered by the other line. Second, retransmission: a NAK to the sender or a request to a replay server for recent gaps. Third, for old gaps or a late join, load a snapshot and rejoin the live stream from its sequence number. Sequence numbers detect gaps, heartbeats detect silence, and duplicates are dropped by sequence number.
+
+#### A/B feeds:
+The same messages are sent on two separate networks (A and B).
+The receiver takes whichever copy arrives first and drops the second.
+Most single-packet losses are fixed here, with no delay and no request.
