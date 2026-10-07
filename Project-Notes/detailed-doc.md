@@ -103,3 +103,34 @@ The industry standard is three levels. First, A/B redundant feeds, so most losse
 The same messages are sent on two separate networks (A and B).
 The receiver takes whichever copy arrives first and drops the second.
 Most single-packet losses are fixed here, with no delay and no request.
+
+## How do snapshots and reconciliation work in your system?
+
+### **Snapshot**
+
+"The matching engine keeps every order book in memory, so we take a snapshot of each book about every 3 seconds.
+
+The matching thread is the single writer, so it takes the snapshot between two events. That way the snapshot reflects an exact point in the stream.
+
+Each snapshot has a header with the Security ID, the Kafka partition, the last offset and the engine's sequence number, followed by the book data: every resting order with its ID, side, price, remaining quantity and time priority.
+
+We write it to local disk in a dated folder, using temp file, fsync, then rename, so a half-written file is never loaded. We also publish it as a snapshot event to Kafka, in the same partition as that book's events.
+
+On restart we load the latest snapshot, seek Kafka to its offset, and apply only events with a higher sequence number. So we replay at most a few seconds of events, with no gaps and no duplicates."
+
+### **Reconciliation**
+
+"Recovery assumes the data is correct, and reconciliation proves it. The engine trades from memory, so a bug or lost event could make memory, Kafka or the database drift apart without anything crashing.
+
+A reconciliation consumer builds its own copy of each book by applying the engine's events from Kafka. Because the snapshot event sits in the same partition right after the event it covers, when the consumer reaches it, both books are at exactly the same sequence number.
+
+**Then it compares in two steps:**
+
+**Quick check:** order count, total quantity per side, best bid and ask, and a checksum of all orders sorted by Order ID. If they match, we're done. That's almost always the case.
+Detailed diff: if not, we match orders by Order ID and list the ones that are missing on either side or have a different remaining quantity, price, state or priority.
+
+We also compare against the OQS database, so the stored record matches the engine.
+
+Kafka is the source of truth and the tie-breaker. If the database is behind, we replay the missing events into OQS, which is safe because it's idempotent by sequence number. If the engine's own state is wrong, which is rare and serious, we alert, halt the instrument and rebuild that book from Kafka.
+
+It runs continuously during the day, after every recovery or failover, and at end of day across the engine, database and clearing."
