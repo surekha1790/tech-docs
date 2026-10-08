@@ -55,6 +55,13 @@ Shenandoah: Also low-pause, supports concurrent compaction.
 12. #### What tuning parameters have you used for G1GC to reduce latency?
 
 Answer: -XX:MaxGCPauseMillis, -XX:+UseStringDeduplication, -XX:InitiatingHeapOccupancyPercent, and sizing parameters like -Xms, -Xmx.
+#### StringDeduplication:
+String Deduplication is a JVM/G1 GC optimization that reduces memory usage by allowing different String objects with the same content to share the same underlying byte[].
+s1 → String Object A ──┐
+                       ├──→ byte[] "ORDER"
+s2 → String Object B ──┘
+
+Since == compares reference rather than byte, it still false.
 
 13. #### What is the effect of -Xms and -Xmx settings on GC behavior?
 
