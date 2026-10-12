@@ -85,11 +85,45 @@ HashMap keys can be mutable objects. However, if a key's fields used by hashCode
 Yes, Java supports private methods in interfaces from Java 9. They can be private instance methods or private static methods, and they help reuse common logic within default and static methods. 
 They cannot be accessed or overridden by implementing classes, and they must have a method body.
 
-### IoC vs DI
-- Inversion of control is a principal. Framework control the object injection.
-- When you inject object with new keyword then it is tightly coupled.
-- Dependency injection is a technique spring uses IoC to inject dependencies.
-- 
+### What happens when two interfaces contain identical default methods and a class implements both? How can it be resolved?
+If a class implements two interfaces that define the same default method, Java reports a compilation error because the implementation is ambiguous. We resolve it by overriding the method in the implementing class and optionally invoking a specific interface implementation using InterfaceName.super.method(). If a superclass provides a concrete implementation, the class method takes precedence over the interface defaults.
+
+###
+The Liskov Substitution Principle states that a subclass or implementation must be usable wherever its parent type is expected without breaking the program's correctness or behavioral contract.
+Inheritance is still useful for code reuse, specialization, and polymorphism. LSP ensures that these benefits don't come at the cost of unexpected behavior.
+For example, if a Penguin inherits from a Bird class that promises every bird can fly, it violates LSP if its fly() method throws an unsupported-operation exception. 
+We should redesign the abstraction so that only flying birds implement a flying capability.
+```
+    interface Bird {
+        void eat();
+    }
+    
+    interface FlyingBird extends Bird {
+        void fly();
+    }
+    
+    class Sparrow implements FlyingBird {
+        public void eat() {}
+        public void fly() {
+            System.out.println("Sparrow flying");
+        }
+    }
+    
+    class Penguin implements Bird {
+        public void eat() {}
+    }
+```
+
+###  Difference between `synchronized` and `ReentrantLock`. What are the trade-offs?
+Both synchronized and ReentrantLock provide mutual exclusion and are reentrant. synchronized is simpler, and the JVM releases its monitor automatically. ReentrantLock offers additional capabilities such as tryLock(), timed and interruptible acquisition, optional fairness, and multiple condition variables.
+The trade-off is simplicity and safer automatic cleanup versus greater control and flexibility. I generally prefer synchronized for straightforward critical sections and use ReentrantLock when I specifically need its advanced locking features. I also benchmark performance rather than assuming one is always faster.
+
+### What is the `volatile` keyword?
+```volatile``` is a Java keyword that guarantees visibility of updates to a shared variable across threads and provides memory-ordering guarantees under the Java Memory Model. However, it does not provide mutual exclusion or make compound operations atomic. For example, ```volatile``` int count does not make ```count++``` thread-safe. I use volatile for simple flags and use ```AtomicInteger```, synchronized blocks, or locks when atomic updates or compound operations are required.
+
+### Difference between sequential and parallel streams?
+Sequential streams process elements one by one, while parallel streams divide work across multiple threads. Parallel streams can improve performance for large, independent, CPU-intensive operations, but they introduce overhead and concurrency concerns. I choose between them based on workload size, thread safety, ordering requirements and performance measurements.
+
                     
 
 
