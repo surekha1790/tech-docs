@@ -63,10 +63,33 @@ So, to avoid this hashmap uses red black AVL tree, and it applies left/right rot
 - Analyze heap dump and identity the memory leak.
 - GC Root is always alive, ex: static variables, thread stacks
 
+### What is the `var` keyword? Can it be used as a generic type?
+```var``` was introduced in Java 10 for local variable type inference. The compiler infers the variable's static type from its initializer, improving readability without changing Java's static typing.
+It cannot be used as a generic type argument, type parameter, field type, method parameter, or return type, but it can be used to declare local variables whose values are generic collections.
+
+### What is effectively final variable
+An effectively final variable is a local variable that is not explicitly declared final but is never reassigned after initialization. Java allows lambdas and anonymous classes to capture such variables.
+This restriction applies to reassignment of the variable, not mutation of an object referenced by it.
+
+### Why Lambda expression require effectively final ?
+Java requires local variables captured by lambdas to be final or effectively final because lambdas capture their values, rather than providing shared access to reassigned local variables. This gives predictable behavior and avoids ambiguity about whether the lambda should observe the original or a subsequently assigned value. It also avoids requiring special shared-variable semantics for captured local variables. We can still mutate an object referenced by an effectively final variable, although that object may need separate thread-safety protection.
+
+### What is Record class ? How to map fetched query results to record ?
+Java Records are primarily intended for immutable data carriers, such as DTOs and query projections. Standard JPA entities require a no-argument constructor and generally need mutable state and proxy compatibility, 
+so records are not appropriate for normal JPA entities. I use regular classes for entities and records for DTOs or read-only query projections.
+
+### Can HashMap keys be mutable? Why or why not?
+HashMap keys can be mutable objects. However, if a key's fields used by hashCode() or equals() change after insertion, the map may not find the entry because it was stored using the original hash. Therefore, immutable keys are preferred. Java records are often suitable keys when their components are themselves immutable and their equality and hash code remain stable.
+
+### Can we define private methods in an interface?
+Yes, Java supports private methods in interfaces from Java 9. They can be private instance methods or private static methods, and they help reuse common logic within default and static methods. 
+They cannot be accessed or overridden by implementing classes, and they must have a method body.
+
 ### IoC vs DI
 - Inversion of control is a principal. Framework control the object injection.
 - When you inject object with new keyword then it is tightly coupled.
 - Dependency injection is a technique spring uses IoC to inject dependencies.
+- 
                     
 
 
