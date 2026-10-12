@@ -198,3 +198,29 @@ class PaymentService {
 - Query Param: api/orders?version=1 (Path is little cluttered)
 - Custom Header: X-API-Version: 1  (Clean Url but hard to test in browser)
 - Media Type: Accept: application/vnd.company.v1+json (Complex and hard to test)
+
+### Explain the internal working of the Spring Container?
+The Spring Container implements **Inversion of Control and Dependency Injection**. When the application starts, Spring creates the ApplicationContext, scans configuration and registers BeanDefinition metadata. 
+It then instantiates beans, resolves and injects dependencies, invokes lifecycle callbacks and runs BeanPostProcessors. Some beans may be wrapped in proxies for features such as transactions and security. 
+Finally, the container manages the beans throughout their lifecycle, including destruction when the context shuts down.
+
+### Explain the Spring Bean Lifecycle?
+The Spring Bean Lifecycle starts with instantiation, followed by dependency injection and relevant Aware callbacks. Spring then executes BeanPostProcessor before-initialization logic, initialization callbacks such as @PostConstruct, afterPropertiesSet() and any custom init method, followed by after-initialization processing. The bean becomes available for use, potentially through a proxy. When the application context shuts down, Spring invokes applicable destruction callbacks such as @PreDestroy and destroy()
+
+### What does `@EnableAutoConfiguration` do?
+```@EnableAutoConfiguration``` tells Spring Boot to automatically configure the application based on the dependencies available on the classpath and the application's configuration.
+For example, if Spring Boot detects Spring MVC and an embedded Tomcat dependency, it can configure the web application infrastructure. If it detects Spring Data JPA and a database configuration, it can configure components for database access.
+It uses conditional configuration, such as ```@ConditionalOnClass``` and ```@ConditionalOnMissingBean```, to decide which configurations should apply. If we define our own bean, Spring Boot can back off from creating a default bean when the relevant condition requires it.
+Usually, we don't add this annotation directly because ```@SpringBootApplication``` already includes it.
+
+### What is `@Qualifier`? How does it differ from `@Primary`?
+@Qualifier and @Primary resolve ambiguity when multiple Spring beans of the same type are available for dependency injection.
+- @Primary specifies the default bean Spring should choose when multiple candidates exist.
+- @Qualifier explicitly selects a particular bean by its qualifier or bean name at the injection point.
+
+### IoC vs DI ?
+- Inversion of control is a principal. Framework control the object injection.
+- When you inject object with new keyword then it is tightly coupled.
+- Dependency injection is a technique spring uses IoC to inject dependencies.
+
+
