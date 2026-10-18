@@ -10,6 +10,14 @@ Generally, GC is performed when heap is full, if memory is not claimed back even
                  JVM can dump the heap using -XX:+HeapDumpOnOutOfMemoryError
 **StackOverFlow:** Each methood call pushes a frame into the stack, when frames exceeded the stack size then it throws StackOverFlow error. Generally due to infinite loop.
 
+### What are common causes of memory leaks in Java?
+– How do you detect and fix them?
+    - Objects are unused but still showing as referenced might be due to static variables
+    - Caches without eviction
+    - Remove values from thread local variables
+
+We detect them using heap dumps, GC logs, and profilers like MAT or VisualVM, and fix them by removing strong references, adding eviction, and proper resource management.
+
 ### Explain Hashmap, hash collision and rehashing
 
 - Initial capacity of map is 16 and **threshold = capacity * 0.75**, means when number of elements reaches the threshold then map size will be doubled.
