@@ -112,7 +112,10 @@ Validate **once at the API gateway** (edge) and forward identity to downstream s
 ## 5. Sessions, CSRF, CORS
 
 ### Q18. What is CSRF and when do you need protection?
-CSRF tricks a logged-in user's browser into sending an unwanted request using **ambient credentials** (cookies) it sends automatically. Protection (a synchronizer/CSRF token the attacker can't read) is needed for **stateful, cookie/session-based** apps. For a **stateless JWT API** where the token is sent explicitly in a header (not auto-attached by the browser), CSRF doesn't apply, so it's commonly disabled — **but** if you move the token into an httpOnly **cookie**, CSRF is back and you need `SameSite`/CSRF tokens again. Know *why* you're disabling it, not just that you did.
+CSRF tricks a logged-in user's browser into sending an unwanted request using **ambient credentials** (cookies) it sends automatically. 
+Protection (a synchronizer/CSRF token the attacker can't read) is needed for **stateful, cookie/session-based** apps. 
+For a **stateless JWT API** where the token is sent explicitly in a header (not auto-attached by the browser),
+CSRF doesn't apply, so it's commonly disabled — **but** if you move the token into an httpOnly **cookie**, CSRF is back and you need `SameSite`/CSRF tokens again. Know *why* you're disabling it, not just that you did.
 
 ### Q19. Session fixation and `SessionCreationPolicy` options.
 `ALWAYS`, `IF_REQUIRED` (default), `NEVER` (don't create but use if present), `STATELESS` (never touch sessions). For stateful apps, Spring's **session fixation protection** (`changeSessionId`, default) issues a new session id on login to prevent an attacker fixing a known id. Also configurable: concurrent-session control (max sessions per user).

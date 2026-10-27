@@ -26,7 +26,7 @@ We detect them using heap dumps, GC logs, and profilers like MAT or VisualVM, an
    * There is a possibility that different keys may have same hashcode and goes to the same bucket, this is where hash collision occurs.
    * In such cases multiple keys will be stored in the same bucket in linked list structure.
    * From Java8, red black tree is being used in place of linked list but not from initial collision.
-   * When there is a collision, it check if the **linked list size is > 8 and total array length is < 64** then it prefer to double the array size instead of treefying as it is cheap operation.
+   * When there is a collision, it checks if the **linked list size is > 8 and total array length is < 64** then it prefer to double the array size instead of treefying as it is cheap operation.
    * When array **length is >= 64** then it will convert the particular bucket into red black tree. Treefying is not per hashmap instead it is per bucket.
  
  - **Rehashing**
@@ -52,7 +52,7 @@ So, to avoid this hashmap uses red black AVL tree, and it applies left/right rot
 - no two red nodes should be in a row.
 - rebalances the tree to keep complexity O(logn)
 - null nodes should be black
-- It uses comparator to compare elements
+- ``` It uses comparator to compare elements ```
 ### Difference between Hashmap, synchronized hashmap and Concurrent hashmap
 - All stores key value pair
 - Hashmap an Synchronized hash map allows one null key and null value but concurrent hashmap does not allow
@@ -94,7 +94,9 @@ Yes, Java supports private methods in interfaces from Java 9. They can be privat
 They cannot be accessed or overridden by implementing classes, and they must have a method body.
 
 ### What happens when two interfaces contain identical default methods and a class implements both? How can it be resolved?
-If a class implements two interfaces that define the same default method, Java reports a compilation error because the implementation is ambiguous. We resolve it by overriding the method in the implementing class and optionally invoking a specific interface implementation using InterfaceName.super.method(). If a superclass provides a concrete implementation, the class method takes precedence over the interface defaults.
+If a class implements two interfaces that define the same default method, Java reports a compilation error because the implementation is ambiguous. 
+We resolve it by overriding the method in the implementing class and optionally invoking a specific interface implementation using InterfaceName.super.method().
+If a superclass provides a concrete implementation, the class method takes precedence over the interface defaults.
 
 ###
 The Liskov Substitution Principle states that a subclass or implementation must be usable wherever its parent type is expected without breaking the program's correctness or behavioral contract.
@@ -123,8 +125,11 @@ We should redesign the abstraction so that only flying birds implement a flying 
 ```
 
 ###  Difference between `synchronized` and `ReentrantLock`. What are the trade-offs?
-Both synchronized and ReentrantLock provide mutual exclusion and are reentrant. synchronized is simpler, and the JVM releases its monitor automatically. ReentrantLock offers additional capabilities such as tryLock(), timed and interruptible acquisition, optional fairness, and multiple condition variables.
-The trade-off is simplicity and safer automatic cleanup versus greater control and flexibility. I generally prefer synchronized for straightforward critical sections and use ReentrantLock when I specifically need its advanced locking features. I also benchmark performance rather than assuming one is always faster.
+Both synchronized and ReentrantLock provide mutual exclusion and are reentrant. synchronized is simpler, and the JVM releases its monitor automatically. 
+ReentrantLock offers additional capabilities such as tryLock(), timed and interruptible acquisition, optional fairness, and multiple condition variables.
+The trade-off is simplicity and safer automatic cleanup versus greater control and flexibility.
+I generally prefer synchronized for straightforward critical sections and use ReentrantLock when I specifically need its advanced locking features.
+I also benchmark performance rather than assuming one is always faster.
 
 ### What is the `volatile` keyword?
 ```volatile``` is a Java keyword that guarantees visibility of updates to a shared variable across threads and provides memory-ordering guarantees under the Java Memory Model. However, it does not provide mutual exclusion or make compound operations atomic. For example, ```volatile``` int count does not make ```count++``` thread-safe. I use volatile for simple flags and use ```AtomicInteger```, synchronized blocks, or locks when atomic updates or compound operations are required.
@@ -132,6 +137,40 @@ The trade-off is simplicity and safer automatic cleanup versus greater control a
 ### Difference between sequential and parallel streams?
 Sequential streams process elements one by one, while parallel streams divide work across multiple threads. Parallel streams can improve performance for large, independent, CPU-intensive operations, but they introduce overhead and concurrency concerns. I choose between them based on workload size, thread safety, ordering requirements and performance measurements.
 
-                    
+### Why collections are not immutable even declared as final in immutable class
+```final``` keyword is not enough to make the collection immutable because when we return the collection 
+with getter, and it returns the same reference, and we can add more elements in it.
+So, to avoid this we need to create unmodifiable list.
+```this.subjects = Collections.unmodifiableList(new ArrayList<>(subjects));```
+
+### Can we write validations in record 
+Yes, we can create compact constructor to perform any validation in record.
+```
+public record Voter(String name, int age) {
+
+    public Voter {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Name is required");
+        }
+        if (age < 18) {
+            throw new IllegalArgumentException("Voter must be at least 18 years old");
+        }
+        name = name.trim();
+    }
+}
+```
+
+### Why do we need public in above example for compact constructor
+It should be accessible to create instantiation or before instantiating.
+### Can we have private constructor and other methods like static and overridden ?
+Yes, private constructor can be added, but it should call another constructor of the record. Canonical or Compact
+constructor can not be private as it should be accessible from outside.
+record can also have normal methods, static, and overridden methods as it can implement interfaces.
+### Can record extend class ?
+No, because it has already extending one class ```java.lang.Record``` 
+
+### How and Why record is final and immutable ?
+record is by default final and all fields are public final. No class extend record.
+record can implement interfaces.
 
 

@@ -13,4 +13,17 @@
 * Same column order
 * Same column names
 * UNION ALL is faster as it includes duplicates, UNION needs to filter duplicates, so it is slower than UNION ALL
+
+### Find second-highest salary
+```
+SELECT employee, sal
+FROM (
+    SELECT e.employee,
+           e.sal,
+           DENSE_RANK() OVER (ORDER BY e.sal DESC) AS rnk
+    FROM employee e
+)
+WHERE rnk = 2;
+```
+
   

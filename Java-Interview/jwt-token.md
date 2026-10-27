@@ -28,7 +28,7 @@
 - If valid, Spring Security creates an authenticated user context.
 
 ### * Why is JWT called stateless?
-- JWT is stateless because it does not required to be stored anywhere unlike session
+- JWT is stateless because it does not require to be stored anywhere unlike session
 - Server just need to validate the token
 
 ### * Where is JWT stored?
@@ -115,7 +115,11 @@ It is stored client side
 ### * What HTTP status codes are typically returned?
 - 401 : Unauthorized - Token is not valid/missing/expired.
 - 403 : Forbidden - Token is valid but required permissions.
+- 404 : Resource Not Found
+- 409 : Business conflict
+- 500 : Server error
 - 200 : Success.
+- 201 : Created
 
   
 

@@ -223,4 +223,7 @@ Usually, we don't add this annotation directly because ```@SpringBootApplication
 - When you inject object with new keyword then it is tightly coupled.
 - Dependency injection is a technique spring uses IoC to inject dependencies.
 
+### Exception handling in Spring
+- @RestControllerAdvice
+
 

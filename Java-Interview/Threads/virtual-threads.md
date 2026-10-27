@@ -138,6 +138,11 @@ void query() throws InterruptedException {
     }
 }
 ```
+### What is Semaphore
+* Semaphore is to limit number threads 
+* Threads acquire before entering and release it after
+* So, external api will not be overwhelmed with many virtual threads
+* Once the semaphore limit is reached then threads will wait and enter only when it is free to enter.
 
 **Q: Is `ThreadLocal` safe with virtual threads?**
 It works, but with millions of threads each one holds its own copy, which uses a lot of memory and is easy to leak. *
@@ -301,3 +306,8 @@ manually, and threads can leak. Structured concurrency does this cleanup for you
    threads.
 7. **Is Structured Concurrency final?** Not yet. It is still preview in Java 26.
 8. **Virtual threads in Spring Boot?** Set `spring.threads.virtual.enabled=true`.
+
+### Use case in E-commerce application
+
+* Product details page should call multiple services to get the information related to product such inventory, price, reviews
+* Here, create a new Backend-to-frontend service and call all the required services using virtual threads.
